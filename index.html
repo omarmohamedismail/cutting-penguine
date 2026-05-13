@@ -1,0 +1,721 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>قاطع الفيديو</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #0c0c10;
+  --surface: #14141a;
+  --surface2: #1c1c24;
+  --border: #2a2a38;
+  --border2: #3a3a4c;
+  --accent: #7c5aff;
+  --accent-hover: #9070ff;
+  --accent-dim: rgba(124,90,255,0.15);
+  --text: #e8e6f4;
+  --muted: #8888aa;
+  --success: #22c55e;
+  --danger: #ef4444;
+}
+
+body {
+  font-family: 'Cairo', system-ui, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+}
+
+/* ── Layout ── */
+.page { max-width: 860px; margin: 0 auto; padding: 2rem 1.5rem 4rem; }
+
+header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 2.5rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid var(--border);
+}
+.logo {
+  width: 44px; height: 44px;
+  background: var(--accent);
+  border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.logo i { font-size: 22px; color: #fff; }
+header h1 { font-size: 22px; font-weight: 700; color: var(--text); }
+header p { font-size: 13px; color: var(--muted); margin-top: 2px; }
+
+/* ── Input tabs ── */
+.tabs { display: flex; gap: 8px; margin-bottom: 1.25rem; }
+.tab {
+  flex: 1; padding: 10px;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 10px; color: var(--muted);
+  font-size: 14px; font-family: inherit; font-weight: 600;
+  cursor: pointer; transition: all 0.15s;
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+}
+.tab.active { background: var(--accent-dim); border-color: var(--accent); color: var(--accent); }
+.tab:hover:not(.active) { border-color: var(--border2); color: var(--text); }
+
+/* ── URL input ── */
+.url-row { display: flex; gap: 10px; margin-bottom: 1.5rem; }
+.url-row input {
+  flex: 1;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 10px; padding: 12px 16px;
+  color: var(--text); font-size: 14px; font-family: inherit;
+  direction: ltr; outline: none; transition: border-color 0.15s;
+}
+.url-row input:focus { border-color: var(--accent); }
+.url-row input::placeholder { color: var(--muted); }
+
+/* ── Drop zone ── */
+#drop-zone {
+  border: 1.5px dashed var(--border);
+  border-radius: 14px; padding: 3rem 2rem;
+  text-align: center; cursor: pointer;
+  background: var(--surface); transition: all 0.2s;
+  margin-bottom: 1.5rem;
+}
+#drop-zone:hover, #drop-zone.drag-over {
+  border-color: var(--accent); background: var(--accent-dim);
+}
+#drop-zone i { font-size: 40px; color: var(--accent); display: block; margin-bottom: 12px; }
+#drop-zone h2 { font-size: 16px; font-weight: 600; margin-bottom: 6px; }
+#drop-zone p { font-size: 13px; color: var(--muted); }
+
+/* ── Buttons ── */
+.btn {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 11px 20px; border-radius: 10px;
+  font-size: 14px; font-weight: 600; font-family: inherit;
+  cursor: pointer; border: none; transition: all 0.15s;
+}
+.btn-primary { background: var(--accent); color: #fff; }
+.btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
+.btn-primary:disabled { background: var(--surface2); color: var(--muted); cursor: not-allowed; }
+.btn-ghost {
+  background: var(--surface); color: var(--muted);
+  border: 1px solid var(--border);
+}
+.btn-ghost:hover { color: var(--text); border-color: var(--border2); }
+.btn-full { width: 100%; justify-content: center; padding: 14px; font-size: 16px; }
+
+/* ── Card ── */
+.card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 14px; padding: 1.25rem;
+  margin-bottom: 1.25rem;
+}
+
+/* ── Video info ── */
+#info-card { display: none; }
+.info-inner { display: flex; gap: 14px; align-items: flex-start; }
+.thumb-wrap { width: 120px; height: 68px; border-radius: 8px; overflow: hidden; flex-shrink: 0; background: var(--surface2); }
+.thumb-wrap img { width: 100%; height: 100%; object-fit: cover; }
+.thumb-placeholder { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; }
+.thumb-placeholder i { font-size: 28px; color: var(--muted); }
+.info-text { flex: 1; min-width: 0; }
+.info-title { font-size: 15px; font-weight: 600; margin-bottom: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.info-meta { display: flex; gap: 10px; flex-wrap: wrap; }
+.badge {
+  font-size: 12px; padding: 3px 10px;
+  border-radius: 20px; font-weight: 600;
+  background: var(--accent-dim); color: var(--accent);
+}
+
+/* ── Player area ── */
+#player-area { display: none; margin-bottom: 1.25rem; }
+#yt-embed { width: 100%; aspect-ratio: 16/9; border-radius: 12px; border: none; background: #000; display: none; }
+#vid { width: 100%; max-height: 340px; border-radius: 12px; background: #000; display: none; }
+
+/* ── Timeline ── */
+#timeline-card { display: none; }
+.tl-label {
+  font-size: 11px; color: var(--muted); font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 10px;
+}
+#timeline-wrap {
+  position: relative; height: 56px;
+  background: var(--surface2); border-radius: 10px;
+  border: 1px solid var(--border); margin-bottom: 1rem;
+  cursor: crosshair; user-select: none;
+}
+#range-fill {
+  position: absolute; top: 0; bottom: 0;
+  background: var(--accent-dim);
+  border-top: 2px solid var(--accent); border-bottom: 2px solid var(--accent);
+  pointer-events: none;
+}
+.handle {
+  position: absolute; top: 0; bottom: 0; width: 16px;
+  background: var(--accent); cursor: ew-resize; z-index: 5;
+  display: flex; align-items: center; justify-content: center;
+  touch-action: none;
+}
+#h-start { border-radius: 10px 0 0 10px; }
+#h-end   { border-radius: 0 10px 10px 0; }
+.handle::after {
+  content: '';
+  width: 2px; height: 22px;
+  background: rgba(255,255,255,0.5); border-radius: 2px;
+}
+#playhead {
+  position: absolute; top: -4px; bottom: -4px; width: 2px;
+  background: #fff; border-radius: 2px; pointer-events: none; z-index: 4;
+}
+
+/* ── Time inputs row ── */
+.time-row { display: flex; gap: 10px; align-items: stretch; margin-bottom: 1.25rem; }
+.time-field {
+  flex: 1; background: var(--surface2);
+  border: 1px solid var(--border); border-radius: 10px;
+  padding: 10px 14px;
+}
+.time-field label {
+  display: block; font-size: 11px; color: var(--muted);
+  font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 6px;
+}
+.time-field input {
+  width: 100%; background: transparent; border: none; outline: none;
+  font-size: 20px; font-weight: 700; color: var(--text);
+  font-family: 'Courier New', monospace; text-align: center; direction: ltr;
+}
+.dur-box {
+  background: var(--accent-dim); border: 1px solid rgba(124,90,255,0.35);
+  border-radius: 10px; padding: 10px 14px; text-align: center; min-width: 110px;
+}
+.dur-box .lbl { font-size: 11px; color: var(--accent); font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 6px; }
+.dur-box .val { font-size: 18px; font-weight: 700; color: var(--accent); font-family: 'Courier New', monospace; direction: ltr; }
+
+/* ── Progress ── */
+#progress-wrap { display: none; margin-bottom: 1rem; }
+.progress-track { height: 6px; background: var(--surface2); border-radius: 6px; overflow: hidden; margin-bottom: 8px; }
+#progress-bar { height: 100%; background: var(--accent); border-radius: 6px; width: 0%; transition: width 0.4s; }
+#progress-msg { font-size: 13px; color: var(--muted); }
+
+/* ── Messages ── */
+.msg {
+  border-radius: 10px; padding: 12px 16px;
+  font-size: 14px; margin-bottom: 1rem;
+  display: none; align-items: center; gap: 8px;
+}
+.msg.error { background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3); color: #f87171; }
+.msg.success { background: rgba(34,197,94,0.1); border: 1px solid rgba(34,197,94,0.3); color: #4ade80; }
+
+/* ── Separator ── */
+.or-sep { text-align: center; color: var(--muted); font-size: 13px; margin: 0.75rem 0; position: relative; }
+.or-sep::before, .or-sep::after {
+  content: ''; position: absolute; top: 50%;
+  width: 42%; height: 1px; background: var(--border);
+}
+.or-sep::before { right: 0; } .or-sep::after { left: 0; }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <header>
+    <div class="logo"><i class="ti ti-scissors" aria-hidden="true"></i></div>
+    <div>
+      <h1>قاطع الفيديو</h1>
+      <p>حمّل من يوتيوب أو أي رابط، وقطّع الجزء اللي تريده</p>
+    </div>
+  </header>
+
+  <!-- Source Tabs -->
+  <div class="tabs">
+    <button class="tab active" id="tab-url" onclick="switchTab('url')">
+      <i class="ti ti-link" aria-hidden="true"></i> من رابط (يوتيوب / أي مصدر)
+    </button>
+    <button class="tab" id="tab-file" onclick="switchTab('file')">
+      <i class="ti ti-upload" aria-hidden="true"></i> من جهازي
+    </button>
+  </div>
+
+  <!-- URL Panel -->
+  <div id="panel-url">
+    <div class="url-row">
+      <input type="url" id="url-inp" placeholder="الصق رابط يوتيوب أو أي رابط فيديو هنا..." dir="ltr">
+      <button class="btn btn-primary" onclick="fetchInfo()">
+        <i class="ti ti-search" aria-hidden="true"></i> جلب
+      </button>
+    </div>
+  </div>
+
+  <!-- File Panel -->
+  <div id="panel-file" style="display:none;">
+    <div id="drop-zone" onclick="document.getElementById('file-inp').click()">
+      <i class="ti ti-cloud-upload" aria-hidden="true"></i>
+      <h2>اسحب الفيديو هنا أو اضغط للاختيار</h2>
+      <p>MP4 · MOV · MKV · AVI · WebM — أي حجم</p>
+    </div>
+    <input type="file" id="file-inp" accept="video/*" style="display:none">
+  </div>
+
+  <!-- Error message -->
+  <div class="msg error" id="err-msg"><i class="ti ti-alert-circle" aria-hidden="true"></i><span id="err-txt"></span></div>
+
+  <!-- Video Info Card -->
+  <div class="card" id="info-card">
+    <div class="info-inner">
+      <div class="thumb-wrap" id="thumb-wrap">
+        <div class="thumb-placeholder"><i class="ti ti-video" aria-hidden="true"></i></div>
+      </div>
+      <div class="info-text">
+        <p class="info-title" id="info-title">—</p>
+        <div class="info-meta">
+          <span class="badge" id="info-dur">—</span>
+          <span class="badge" id="info-src">—</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Player Area -->
+  <div id="player-area">
+    <iframe id="yt-embed" allowfullscreen allow="autoplay"></iframe>
+    <video id="vid" controls></video>
+  </div>
+
+  <!-- Timeline Card -->
+  <div class="card" id="timeline-card">
+    <p class="tl-label">اختر الجزء المطلوب</p>
+
+    <div id="timeline-wrap">
+      <div id="range-fill"></div>
+      <div class="handle" id="h-start" aria-label="نقطة البداية"></div>
+      <div class="handle" id="h-end"   aria-label="نقطة النهاية"></div>
+      <div id="playhead"></div>
+    </div>
+
+    <div class="time-row">
+      <div class="time-field">
+        <label>البداية</label>
+        <input type="text" id="start-inp" value="00:00:00" dir="ltr">
+      </div>
+      <div class="dur-box">
+        <div class="lbl">المدة</div>
+        <div class="val" id="dur-val">00:00:00</div>
+      </div>
+      <div class="time-field">
+        <label>النهاية</label>
+        <input type="text" id="end-inp" value="00:00:00" dir="ltr">
+      </div>
+    </div>
+
+    <div id="progress-wrap">
+      <div class="progress-track"><div id="progress-bar"></div></div>
+      <p id="progress-msg">جاري المعالجة...</p>
+    </div>
+
+    <div class="msg success" id="ok-msg">
+      <i class="ti ti-circle-check" aria-hidden="true"></i>
+      <span>تم! بدأ التحميل تلقائياً ✅</span>
+    </div>
+
+    <button class="btn btn-primary btn-full" id="cut-btn" onclick="startCut()">
+      <i class="ti ti-scissors" aria-hidden="true"></i>
+      اقطع الفيديو وحمّله
+    </button>
+
+    <div style="margin-top:10px;">
+      <button class="btn btn-ghost btn-full" onclick="resetAll()">
+        <i class="ti ti-refresh" aria-hidden="true"></i> ابدأ من جديد
+      </button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ── State ──────────────────────────────────────────────
+let state = {
+  tab: 'url',
+  url: null,
+  isLocal: false,
+  localFile: null,
+  localObjectUrl: null,
+  title: 'video',
+  duration: 0,
+  startSec: 0,
+  endSec: 0,
+  dragging: null,
+};
+
+// ── Tabs ──────────────────────────────────────────────
+function switchTab(t) {
+  state.tab = t;
+  document.getElementById('tab-url').classList.toggle('active', t === 'url');
+  document.getElementById('tab-file').classList.toggle('active', t === 'file');
+  document.getElementById('panel-url').style.display = t === 'url' ? 'block' : 'none';
+  document.getElementById('panel-file').style.display = t === 'file' ? 'block' : 'none';
+}
+
+// ── URL fetch info ─────────────────────────────────────
+async function fetchInfo() {
+  const url = document.getElementById('url-inp').value.trim();
+  if (!url) return showErr('الرجاء إدخال رابط الفيديو');
+  hideErr();
+  showLoading(true, 'جاري جلب معلومات الفيديو...');
+
+  try {
+    const res = await fetch('/api/info?url=' + encodeURIComponent(url));
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'خطأ غير معروف');
+
+    state.url = url;
+    state.isLocal = false;
+    state.title = data.title || 'video';
+    state.duration = data.duration || 0;
+    state.startSec = 0;
+    state.endSec = state.duration;
+
+    // Info card
+    document.getElementById('info-title').textContent = data.title || url;
+    document.getElementById('info-dur').textContent = data.duration ? secToHMS(data.duration) : 'مدة غير معروفة';
+    document.getElementById('info-src').textContent = data.type === 'youtube' ? '▶ يوتيوب' : '🔗 رابط مباشر';
+
+    if (data.thumbnail) {
+      document.getElementById('thumb-wrap').innerHTML = `<img src="${data.thumbnail}" alt="thumbnail">`;
+    }
+    document.getElementById('info-card').style.display = 'block';
+
+    // Player
+    if (data.type === 'youtube' && data.videoId) {
+      document.getElementById('yt-embed').src =
+        `https://www.youtube.com/embed/${data.videoId}?enablejsapi=1`;
+      document.getElementById('yt-embed').style.display = 'block';
+      document.getElementById('vid').style.display = 'none';
+    } else {
+      // Direct URL in video element
+      const vid = document.getElementById('vid');
+      vid.src = url;
+      vid.style.display = 'block';
+      document.getElementById('yt-embed').style.display = 'none';
+      vid.onloadedmetadata = () => {
+        if (!state.duration) {
+          state.duration = vid.duration;
+          state.endSec = vid.duration;
+          document.getElementById('info-dur').textContent = secToHMS(vid.duration);
+          renderTimeline();
+        }
+      };
+    }
+
+    document.getElementById('player-area').style.display = 'block';
+    renderTimeline();
+    document.getElementById('timeline-card').style.display = 'block';
+
+  } catch (err) {
+    showErr(err.message);
+  } finally {
+    showLoading(false);
+  }
+}
+
+// Allow Enter key on URL input
+document.getElementById('url-inp').addEventListener('keydown', e => {
+  if (e.key === 'Enter') fetchInfo();
+});
+
+// ── Local File ─────────────────────────────────────────
+const fileInp = document.getElementById('file-inp');
+const dropZone = document.getElementById('drop-zone');
+
+fileInp.addEventListener('change', e => e.target.files[0] && loadLocal(e.target.files[0]));
+dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('drag-over'); });
+dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+dropZone.addEventListener('drop', e => {
+  e.preventDefault();
+  dropZone.classList.remove('drag-over');
+  const f = e.dataTransfer.files[0];
+  if (f && f.type.startsWith('video/')) loadLocal(f);
+});
+
+function loadLocal(file) {
+  if (state.localObjectUrl) URL.revokeObjectURL(state.localObjectUrl);
+  state.localFile = file;
+  state.isLocal = true;
+  state.title = file.name.replace(/\.[^.]+$/, '');
+  state.localObjectUrl = URL.createObjectURL(file);
+
+  document.getElementById('info-title').textContent = file.name;
+  document.getElementById('info-src').textContent = '💾 ملف محلي';
+  document.getElementById('info-dur').textContent = '...';
+  document.getElementById('info-card').style.display = 'block';
+
+  const vid = document.getElementById('vid');
+  vid.src = state.localObjectUrl;
+  vid.style.display = 'block';
+  document.getElementById('yt-embed').style.display = 'none';
+  document.getElementById('player-area').style.display = 'block';
+
+  vid.onloadedmetadata = () => {
+    state.duration = vid.duration;
+    state.startSec = 0;
+    state.endSec = vid.duration;
+    document.getElementById('info-dur').textContent = secToHMS(vid.duration);
+    renderTimeline();
+    document.getElementById('timeline-card').style.display = 'block';
+  };
+}
+
+// ── Timeline ────────────────────────────────────────────
+const tl = document.getElementById('timeline-wrap');
+const hS = document.getElementById('h-start');
+const hE = document.getElementById('h-end');
+const rf = document.getElementById('range-fill');
+const ph = document.getElementById('playhead');
+
+function renderTimeline() {
+  if (!state.duration) return;
+  const s = pct(state.startSec), e = pct(state.endSec);
+  hS.style.left = `calc(${s}% - 8px)`;
+  hE.style.left = `calc(${e}% - 8px)`;
+  rf.style.left = s + '%';
+  rf.style.width = (e - s) + '%';
+  document.getElementById('start-inp').value = secToHMS(state.startSec);
+  document.getElementById('end-inp').value = secToHMS(state.endSec);
+  document.getElementById('dur-val').textContent = secToHMS(Math.max(0, state.endSec - state.startSec));
+}
+
+function pct(sec) { return state.duration ? (sec / state.duration) * 100 : 0; }
+
+function secFromEvent(e) {
+  const rect = tl.getBoundingClientRect();
+  const x = (e.touches ? e.touches[0].clientX : e.clientX) - rect.left;
+  return Math.max(0, Math.min(state.duration, (x / rect.width) * state.duration));
+}
+
+hS.addEventListener('mousedown',  e => { state.dragging = 'start'; e.preventDefault(); });
+hE.addEventListener('mousedown',  e => { state.dragging = 'end';   e.preventDefault(); });
+hS.addEventListener('touchstart', e => { state.dragging = 'start'; e.preventDefault(); }, { passive: false });
+hE.addEventListener('touchstart', e => { state.dragging = 'end';   e.preventDefault(); }, { passive: false });
+
+document.addEventListener('mousemove',  onMove);
+document.addEventListener('touchmove',  onMove, { passive: true });
+document.addEventListener('mouseup',   () => { state.dragging = null; });
+document.addEventListener('touchend',  () => { state.dragging = null; });
+
+function onMove(e) {
+  if (!state.dragging || !state.duration) return;
+  const sec = secFromEvent(e);
+  if (state.dragging === 'start') state.startSec = Math.min(sec, state.endSec - 1);
+  else                            state.endSec   = Math.max(sec, state.startSec + 1);
+  renderTimeline();
+}
+
+// Playhead sync (local video only)
+document.getElementById('vid').addEventListener('timeupdate', function() {
+  if (state.duration) ph.style.left = pct(this.currentTime) + '%';
+});
+
+// Time inputs
+document.getElementById('start-inp').addEventListener('change', e => {
+  const s = hmsToSec(e.target.value);
+  if (!isNaN(s) && s >= 0 && s < state.endSec) { state.startSec = s; renderTimeline(); }
+  else e.target.value = secToHMS(state.startSec);
+});
+document.getElementById('end-inp').addEventListener('change', e => {
+  const s = hmsToSec(e.target.value);
+  if (!isNaN(s) && s > state.startSec && s <= (state.duration || 999999)) { state.endSec = s; renderTimeline(); }
+  else e.target.value = secToHMS(state.endSec);
+});
+
+// ── Cut ─────────────────────────────────────────────────
+async function startCut() {
+  hideMsg('ok-msg');
+  hideErr();
+
+  const btn = document.getElementById('cut-btn');
+  const prog = document.getElementById('progress-wrap');
+  const bar = document.getElementById('progress-bar');
+  const msg = document.getElementById('progress-msg');
+
+  btn.disabled = true;
+  prog.style.display = 'block';
+
+  // Animate progress (we can't know exact server-side progress)
+  let fake = 0;
+  const ticker = setInterval(() => {
+    if (fake < 88) { fake += Math.random() * 4; bar.style.width = Math.min(88, fake) + '%'; }
+  }, 400);
+
+  try {
+    if (state.isLocal) {
+      // Local file → use FFmpeg.wasm in browser
+      await cutLocal(bar, msg);
+    } else {
+      // Remote → server
+      await cutRemote(bar, msg);
+    }
+    clearInterval(ticker);
+    bar.style.width = '100%';
+    bar.style.background = 'var(--success)';
+    msg.textContent = '✅ تم القطع بنجاح!';
+    document.getElementById('ok-msg').style.display = 'flex';
+  } catch (err) {
+    clearInterval(ticker);
+    showErr(err.message);
+    prog.style.display = 'none';
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+async function cutRemote(bar, msg) {
+  msg.textContent = 'جاري التواصل مع السيرفر...';
+  const params = new URLSearchParams({
+    url: state.url,
+    start: state.startSec.toFixed(3),
+    end: state.endSec.toFixed(3),
+    title: state.title
+  });
+  const res = await fetch('/api/cut?' + params);
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}));
+    throw new Error(data.error || 'خطأ من السيرفر');
+  }
+  msg.textContent = 'جاري تحميل المقطع...';
+  const blob = await res.blob();
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = state.title + '_cut.mp4';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+// ── FFmpeg.wasm for local files ─────────────────────────
+let ffmpegInst = null, ffmpegLoaded = false;
+
+async function cutLocal(bar, msg) {
+  msg.textContent = 'جاري تحميل مكتبة FFmpeg...';
+
+  if (!window.FFmpegWASM) {
+    await loadScript('https://unpkg.com/@ffmpeg/ffmpeg@0.12.10/dist/umd/ffmpeg.js');
+    await loadScript('https://unpkg.com/@ffmpeg/util@0.12.1/dist/umd/index.js');
+  }
+
+  const { FFmpeg } = FFmpegWASM;
+  const { fetchFile, toBlobURL } = FFmpegUtil;
+
+  if (!ffmpegInst) {
+    ffmpegInst = new FFmpeg();
+    ffmpegInst.on('progress', ({ progress }) => {
+      const p = Math.min(95, Math.round(progress * 100));
+      bar.style.width = p + '%';
+      msg.textContent = `جاري المعالجة... ${p}%`;
+    });
+  }
+
+  if (!ffmpegLoaded) {
+    const base = 'https://unpkg.com/@ffmpeg/core@0.12.6/dist/umd';
+    await ffmpegInst.load({
+      coreURL: await toBlobURL(`${base}/ffmpeg-core.js`, 'text/javascript'),
+      wasmURL: await toBlobURL(`${base}/ffmpeg-core.wasm`, 'application/wasm'),
+    });
+    ffmpegLoaded = true;
+  }
+
+  msg.textContent = 'جاري قراءة الملف...';
+  bar.style.width = '15%';
+
+  const ext = (state.localFile.name.split('.').pop() || 'mp4').toLowerCase();
+  const inFile = `in.${ext}`;
+  const outFile = `out.mp4`;
+
+  await ffmpegInst.writeFile(inFile, await fetchFile(state.localFile));
+
+  msg.textContent = 'جاري القطع...';
+  await ffmpegInst.exec([
+    '-ss', state.startSec.toFixed(3),
+    '-i', inFile,
+    '-t', (state.endSec - state.startSec).toFixed(3),
+    '-c', 'copy',
+    '-avoid_negative_ts', 'make_zero',
+    outFile
+  ]);
+
+  msg.textContent = 'جاري تحضير الملف...';
+  const data = await ffmpegInst.readFile(outFile);
+  const blob = new Blob([data.buffer], { type: 'video/mp4' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = state.title + '_cut.mp4';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+
+  await ffmpegInst.deleteFile(inFile).catch(() => {});
+  await ffmpegInst.deleteFile(outFile).catch(() => {});
+}
+
+function loadScript(src) {
+  return new Promise((res, rej) => {
+    const s = document.createElement('script');
+    s.src = src; s.onload = res; s.onerror = rej;
+    document.head.appendChild(s);
+  });
+}
+
+// ── Reset ───────────────────────────────────────────────
+function resetAll() {
+  state = { tab: state.tab, url: null, isLocal: false, localFile: null, localObjectUrl: null, title: 'video', duration: 0, startSec: 0, endSec: 0, dragging: null };
+  document.getElementById('info-card').style.display = 'none';
+  document.getElementById('player-area').style.display = 'none';
+  document.getElementById('timeline-card').style.display = 'none';
+  document.getElementById('url-inp').value = '';
+  document.getElementById('file-inp').value = '';
+  document.getElementById('vid').src = '';
+  document.getElementById('yt-embed').src = '';
+  document.getElementById('progress-wrap').style.display = 'none';
+  document.getElementById('progress-bar').style.width = '0%';
+  document.getElementById('progress-bar').style.background = 'var(--accent)';
+  document.getElementById('thumb-wrap').innerHTML = '<div class="thumb-placeholder"><i class="ti ti-video" aria-hidden="true"></i></div>';
+  hideErr();
+  hideMsg('ok-msg');
+}
+
+// ── Helpers ─────────────────────────────────────────────
+function secToHMS(s) {
+  s = Math.max(0, Math.floor(s));
+  const h = String(Math.floor(s / 3600)).padStart(2, '0');
+  const m = String(Math.floor((s % 3600) / 60)).padStart(2, '0');
+  const sec = String(s % 60).padStart(2, '0');
+  return `${h}:${m}:${sec}`;
+}
+function hmsToSec(t) {
+  const p = t.trim().split(':').map(Number);
+  if (p.length === 3) return p[0] * 3600 + p[1] * 60 + p[2];
+  if (p.length === 2) return p[0] * 60 + p[1];
+  return parseFloat(t);
+}
+function showErr(msg) {
+  const el = document.getElementById('err-msg');
+  document.getElementById('err-txt').textContent = msg;
+  el.style.display = 'flex';
+}
+function hideErr() { document.getElementById('err-msg').style.display = 'none'; }
+function hideMsg(id) { document.getElementById(id).style.display = 'none'; }
+function showLoading(on, text = '') {
+  const btn = document.querySelector('#panel-url .btn-primary');
+  if (btn) { btn.disabled = on; btn.innerHTML = on ? `<i class="ti ti-loader-2 ti-spin"></i> ${text}` : '<i class="ti ti-search"></i> جلب'; }
+}
+</script>
+</body>
+</html>
